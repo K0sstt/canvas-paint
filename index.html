@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body style="margin: 0;">
+
+	<canvas id="canvas" style="display: block;"></canvas>
+
+	<script>
+		var canvas = document.getElementById('canvas'),
+			//context = ctx
+			ctx = canvas.getContext('2d'),
+			isMouseDown = false,
+			coords = [],
+			radius = 5;
+
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+
+
+		canvas.addEventListener('mousedown', function() {
+			isMouseDown = true;
+		});
+
+		canvas.addEventListener('mouseup', function() {
+			isMouseDown = false;
+			ctx.beginPath();
+			coords.push('mouseup');
+		});
+
+		ctx.lineWidth = radius * 2;
+
+		canvas.addEventListener('mousemove', function(e) {
+
+			if(isMouseDown) {
+				coords.push([e.clientX, e.clientY]);
+
+				ctx.lineTo(e.clientX, e.clientY);
+				ctx.stroke();
+
+				ctx.beginPath();
+				ctx.arc(e.clientX, e.clientY, radius, 0, Math.PI * 2);
+				ctx.fill();
+
+				ctx.beginPath();
+				ctx.moveTo(e.clientX, e.clientY);
+			}
+			
+		});
+
+		function save() {
+			localStorage.setItem('coords', JSON.stringify(coords));
+		}
+
+		function replay() {
+			var timer = setInterval(function() {
+				if(!coords.length) {
+					clearInterval(timer);
+					ctx.beginPath();
+					return;
+				}
+
+				var crd = coords.shift(),
+					e = {
+						clientX: crd["0"],
+						clientY: crd["1"]
+					};
+
+					ctx.lineTo(e.clientX, e.clientY);
+					ctx.stroke();
+
+					ctx.beginPath();
+					ctx.arc(e.clientX, e.clientY, 10, 0, Math.PI * 2);
+					ctx.fill();
+
+					ctx.beginPath();
+					ctx.moveTo(e.clientX, e.clientY);
+
+			}, 30);
+		}
+
+		function clear() {
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+		}
+
+		document.addEventListener('keydown', function(e) {
+
+			if(e.keyCode == 83) {
+				// save
+				save();
+				console.log('Saved');
+			}
+
+			if(e.keyCode == 82) {
+				// replay
+				console.log('Replaing.....');
+
+				coords = JSON.parse(localStorage.getItem('coords'));
+				clear();
+				replay();
+			}
+
+			if(e.keyCode == 67) {
+				// clear
+				clear();
+				console.log('Cleared');
+			}
+
+		});
+
+	</script>
+	
+</body>
+</html>
